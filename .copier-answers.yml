@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier
+_commit: 24216cc
+_src_path: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
+app_name: elifine
+description: Website
+has_backend: false
+node_version: 22.13.0
+pnpm_version: 9.15.4
+python_version: 3.12.7
+repo_name: elifine-com
+ssh_port_number: 56219
+use_windows_in_ci: false
+
