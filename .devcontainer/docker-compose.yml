@@ -15,7 +15,7 @@ services:
       # Break out the pnpm store folder as a separate docker volume for better performance on Windows hosts
       - pnpm_store:/workspaces/elifine-com/.pnpm-store
       # And node_modules
-      - app_node_modules:/workspaces/elifine-com/elifine-com_app/node_modules
+      - app_node_modules:/workspaces/elifine-com/elifine_app/node_modules
     command: sleep infinity
     ports:
       - "56219:2222"
