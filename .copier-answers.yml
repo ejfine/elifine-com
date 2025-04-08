@@ -1,13 +1,21 @@
 # Changes here will be overwritten by Copier
-_commit: 6c54644
+_commit: v0.0.1-1-g8145324
 _src_path: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
 app_name: elifine
+aws_identity_center_id: d-9067c20053
+aws_org_home_region: us-east-1
+aws_production_account_id: '161272226449'
+aws_region_for_stack: us-east-1
 description: Website
 has_backend: false
+is_open_source: true
 node_version: 22.13.0
-pnpm_version: 9.15.4
+pnpm_version: 10.7.0
+python_package_registry: PyPI
 python_version: 3.12.7
 repo_name: elifine-com
+repo_org_name: ejfine
 ssh_port_number: 56219
+use_staging_environment: false
 use_windows_in_ci: false
 

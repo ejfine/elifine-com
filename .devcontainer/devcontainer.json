@@ -5,7 +5,7 @@
   "features": {
     "ghcr.io/devcontainers/features/aws-cli:1": {
       // view latest version https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst
-      "version": "2.19.3"
+      "version": "2.24.24"
     },
     "ghcr.io/devcontainers/features/python:1": {
       // https://github.com/devcontainers/features/tree/main/src/python
@@ -16,8 +16,9 @@
     "ghcr.io/devcontainers/features/node:1.6.1": {
       // https://github.com/devcontainers/features/tree/main/src/node
       "version": "22.13.0",
-      "pnpmVersion": "9.15.4"
+      "pnpmVersion": "10.7.0"
     }
+
   },
   "customizations": {
     "vscode": {
@@ -36,8 +37,14 @@
         "ms-vscode-remote.remote-containers@0.383.0",
         "charliermarsh.ruff@2024.54.0",
 
+
         // VueJS
-        "vue.volar@2.2.0",
+        "vue.volar@2.2.8",
+        "vitest.explorer@1.16.1",
+
+        // All javascript
+        "dbaeumer.vscode-eslint@3.0.13",
+
 
         // Misc file formats
         "bierner.markdown-mermaid@1.25.0",
@@ -57,7 +64,7 @@
         "ruff.nativeServer": "on",
         // TODO: see if there's a way to specify different configurations for different folders
         "ruff.configuration": "/workspaces/elifine-com/ruff-test.toml", // use the test configuration since it's less restrictive and won't show false positives and underline things
-        "[jsonc][json]": {
+        "[jsonc][json][javascript][typescript][graphql]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode",
           "editor.formatOnSave": true
         }
