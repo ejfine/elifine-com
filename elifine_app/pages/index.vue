@@ -1,69 +1,13 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    <!-- Reconstruction Notice -->
-    <div class="bg-yellow-300 text-black p-4 rounded-lg mb-6 flex items-center space-x-2">
-      <Icon name="mdi:alert" class="text-xl" />
-      <span class="font-semibold"
-        >This website is currently undergoing reconstruction. Stay tuned and come back soon.</span
-      >
-    </div>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <!-- Header with enhanced typography and spacing -->
+    <h1 class="text-4xl font-bold text-gray-800 mb-6">Welcome</h1>
 
-    <h1 class="text-3xl font-bold mb-8">
-      Laboratory Automation, Software &amp; Informatics Consulting by Eli Fine, PhD
-    </h1>
-    <div class="space-y-4">
-      <!-- LinkedIn -->
-      <a
-        href="https://www.linkedin.com/in/elifine"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center space-x-2 text-blue-600 hover:underline"
-      >
-        <Icon name="mdi:linkedin" />
-        <span>LinkedIn</span>
-      </a>
-
-      <!-- GitHub -->
-      <a
-        href="https://github.com/ejfine"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center space-x-2 text-gray-800 hover:underline"
-      >
-        <Icon name="mdi:github" />
-        <span>GitHub</span>
-      </a>
-
-      <!-- Resume -->
-      <a
-        href="/resume-eli-fine.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center space-x-2 text-green-600 hover:underline"
-      >
-        <Icon name="mdi:file-document-outline" />
-        <span>Resume</span>
-      </a>
-
-      <!-- Google Scholar -->
-      <div class="flex flex-col items-start space-y-1">
-        <a
-          href="https://scholar.google.com/citations?user=eBFJX7QAAAAJ"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center space-x-2 text-purple-600 hover:underline"
-        >
-          <Icon name="mdi:school" />
-          <span>Google Scholar</span>
-        </a>
-        <p class="text-sm text-gray-500 ml-6">H-Index: 13 | Total Citations: 8100+</p>
-      </div>
-    </div>
+    <!-- Main content wrapped in a paragraph for better semantics and centered text -->
+    <p class="text-center text-gray-600 text-lg max-w-2xl">
+      Eli Fine provides boutique customized solutions for clients engaged in robotic automation, genomics, gene therapy,
+      and genome engineering. He also creates custom software solutions to improve operational efficiency by automating
+      routine tasks.
+    </p>
   </div>
 </template>
-
-<script setup lang="ts"></script>
-
-<style>
-/* Optional: Add global styles or modify TailwindCSS styles */
-</style>

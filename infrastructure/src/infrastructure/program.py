@@ -2,6 +2,7 @@ import logging
 import mimetypes
 import os
 from pathlib import Path
+from uuid import uuid4
 
 import pulumi
 from ephemeral_pulumi_deploy import append_resource_suffix
@@ -17,6 +18,7 @@ from pulumi_aws.iam import get_policy_document
 from pulumi_aws.s3 import BucketObjectv2
 from pulumi_aws_native import cloudfront
 from pulumi_aws_native import s3
+from pulumi_command.local import Command
 
 from .jinja_constants import APP_DIRECTORY_NAME
 from .jinja_constants import APP_DOMAIN_NAME
@@ -137,3 +139,9 @@ def pulumi_program() -> None:
             )
         )
         export("app-cloudfront-domain-name", app_cloudfront.domain_name)
+        _ = Command(
+            append_resource_suffix("app-cloudfront-invalidation"),
+            create=app_cloudfront.id.apply(
+                lambda distribution_id: f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" && echo {uuid4()}'
+            ),
+        )
