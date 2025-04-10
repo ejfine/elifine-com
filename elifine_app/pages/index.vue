@@ -62,7 +62,7 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup lang="ts"></script>
 
 <style>
 /* Optional: Add global styles or modify TailwindCSS styles */
