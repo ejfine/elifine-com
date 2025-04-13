@@ -16,7 +16,7 @@ python_package_registry: PyPI
 python_version: 3.12.7
 repo_name: elifine-com
 repo_org_name: ejfine
-ssh_port_number: 56219
+ssh_port_number: 49165
 use_staging_environment: false
 use_windows_in_ci: false
 
