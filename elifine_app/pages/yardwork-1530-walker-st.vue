@@ -27,19 +27,30 @@
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Property Overview</h2>
     <UModal fullscreen title="Property Overview">
-      <img src="/yard/yardwork.png" width="50%" class="cursor-pointer" />
+      <img
+        src="/yard/yardwork.png"
+        width="50%"
+        class="cursor-pointer"
+        loading="lazy"
+        alt="Overview of the yard at 1530 Walker St"
+      />
       <template #body>
-        <img src="/yard/yardwork.png" width="100%" />
+        <img src="/yard/yardwork.png" width="100%" loading="lazy" alt="Detailed view of the yard at 1530 Walker St" />
       </template>
     </UModal>
 
-    <!-- Refactored v-for loop without wrapping div -->
     <template v-for="(section, index) in yardSections" :key="index">
       <b>{{ section.title }}</b>
       <UModal :fullscreen="true" :title="section.title">
-        <img :src="section.image" width="50%" class="cursor-pointer" />
+        <img
+          :src="section.image"
+          width="50%"
+          class="cursor-pointer"
+          loading="lazy"
+          :alt="`Image of ${section.title}`"
+        />
         <template #body>
-          <img :src="section.image" width="100%" />
+          <img :src="section.image" width="100%" loading="lazy" :alt="`Detailed view of ${section.title}`" />
         </template>
       </UModal>
       <br />
