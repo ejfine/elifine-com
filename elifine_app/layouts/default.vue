@@ -39,7 +39,7 @@ const primaryTextClass = primaryTextColorMap[appConfig.ui.neutral];
         <UContainer>
           <div class="flex items-center justify-between">
             <div class="text-xl font-bold">
-              Laboratory Automation, Software &amp; Informatics Consulting by Eli Fine, PhD
+              Laboratory Automation, Software &amp; Informatics Consulting<br />by Eli Fine, PhD
             </div>
             <nav>
               <ul class="flex space-x-4">
