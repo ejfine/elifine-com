@@ -12,6 +12,7 @@ const emailLink = ref<HTMLAnchorElement | null>(null);
 
 onMounted(() => {
   nextTick(() => {
+    // need to wait for initial DOM to populate in order for the `<a>` tag not to be null
     // split your address into parts
     const user = "e.j.fine";
     const domain = "gmail";
