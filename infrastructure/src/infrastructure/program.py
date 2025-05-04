@@ -2,6 +2,7 @@ import logging
 import mimetypes
 import os
 from pathlib import Path
+from uuid import uuid4
 
 import pulumi
 from ephemeral_pulumi_deploy import append_resource_suffix
@@ -10,6 +11,8 @@ from ephemeral_pulumi_deploy import get_aws_account_id
 from ephemeral_pulumi_deploy import get_config_str
 from ephemeral_pulumi_deploy.utils import PROTECTED_ENVS
 from pulumi import Output
+from pulumi import Resource
+from pulumi import ResourceOptions
 from pulumi import export
 from pulumi_aws.iam import GetPolicyDocumentStatementArgs
 from pulumi_aws.iam import GetPolicyDocumentStatementPrincipalArgs
@@ -17,6 +20,7 @@ from pulumi_aws.iam import get_policy_document
 from pulumi_aws.s3 import BucketObjectv2
 from pulumi_aws_native import cloudfront
 from pulumi_aws_native import s3
+from pulumi_command.local import Command
 
 from .jinja_constants import APP_DIRECTORY_NAME
 from .jinja_constants import APP_DOMAIN_NAME
@@ -31,7 +35,8 @@ def _get_mime_type(file_path: Path) -> str:
     return content_type or "application/octet-stream"
 
 
-def _upload_assets_to_s3(*, bucket_id: Output[str], base_dir: Path) -> None:
+def _upload_assets_to_s3(*, bucket_id: Output[str], base_dir: Path) -> list[Resource]:
+    uploads: list[Resource] = []
     for dirpath, _, filenames in os.walk(base_dir):
         for filename in filenames:
             file_path = Path(dirpath) / filename
@@ -42,13 +47,16 @@ def _upload_assets_to_s3(*, bucket_id: Output[str], base_dir: Path) -> None:
             s3_key = os.path.relpath(file_path, base_dir)
             # Since resource names cannot have slashes, we replace them with dashes.
             resource_name = append_resource_suffix(s3_key.replace(os.sep, "-"), max_length=200)
-            _ = BucketObjectv2(
-                resource_name,
-                content_type=_get_mime_type(file_path),
-                bucket=bucket_id,
-                key=s3_key,
-                source=pulumi.FileAsset(str(file_path)),
+            uploads.append(
+                BucketObjectv2(
+                    resource_name,
+                    content_type=_get_mime_type(file_path),
+                    bucket=bucket_id,
+                    key=s3_key,
+                    source=pulumi.FileAsset(str(file_path)),
+                )
             )
+    return uploads
 
 
 def pulumi_program() -> None:
@@ -92,7 +100,7 @@ def pulumi_program() -> None:
             ).json,
         )
     )
-    _upload_assets_to_s3(
+    all_uploads = _upload_assets_to_s3(
         bucket_id=app_website_bucket.id, base_dir=repo_root / APP_DIRECTORY_NAME / ".output" / "public"
     )
     if env in PROTECTED_ENVS:
@@ -137,3 +145,10 @@ def pulumi_program() -> None:
             )
         )
         export("app-cloudfront-domain-name", app_cloudfront.domain_name)
+        _ = Command(
+            append_resource_suffix("app-cloudfront-invalidation"),
+            create=app_cloudfront.id.apply(
+                lambda distribution_id: f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" && echo {uuid4()}'
+            ),
+            opts=ResourceOptions(depends_on=all_uploads),
+        )
