@@ -127,6 +127,7 @@ repos:
               elifine_app/public/yard/playground.jpg|
               elifine_app/public/yard/side-yard.jpg|
               elifine_app/public/yard/front-yard.jpg|
+              elifine_app/pages/yardwork.pdn|
           )$
       - id: check-json
         # exclude JSON5 or JSONC files with comments
