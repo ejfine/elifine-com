@@ -21,7 +21,7 @@
       <li>Side yard: mow, weed whack around the fence (summer). leaf cleanup (fall)</li>
       <li>Upper backyard: mow (summer). leaf cleanup (fall)</li>
       <li>Driveway Hedges: weed whack underneath, trim hedges (1-2 times per season)</li>
-      <li>Playground: Blow off the playground surface, mow the grass around it (summel). leaf cleanup (fall)</li>
+      <li>Playground: Blow off the playground surface, mow the grass around it (summer). leaf cleanup (fall)</li>
     </ul>
     <br />
 
