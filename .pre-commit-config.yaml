@@ -116,7 +116,19 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=123"]
-        exclude: (uv.lock)|(pnpm-lock.yaml)|(elifine_app/public/eli-headshot.png)
+        exclude: |
+          (?x)^(
+              uv.lock|
+              pnpm-lock.yaml|
+              elifine_app/public/eli-headshot.png|
+              elifine_app/public/yard/yardwork.png|
+              elifine_app/public/yard/driveway-hedges.jpg|
+              elifine_app/public/yard/upper-backyard.jpg|
+              elifine_app/public/yard/playground.jpg|
+              elifine_app/public/yard/side-yard.jpg|
+              elifine_app/public/yard/front-yard.jpg|
+              elifine_app/pages/yardwork.pdn|
+          )$
       - id: check-json
         # exclude JSON5 or JSONC files with comments
         exclude: |
