@@ -63,6 +63,6 @@ const primaryTextClass = primaryTextColorMap[appConfig.ui.neutral];
           <p class="text-sm">&copy; 2025 Eli Fine. All rights reserved.</p>
         </UContainer>
       </footer>
-    </div></UApp
-  >
+    </div>
+  </UApp>
 </template>

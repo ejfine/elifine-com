@@ -18,10 +18,8 @@ onMounted(() => {
     const domain = "gmail";
     const tld = "com";
     const email = `${user}@${domain}.${tld}`;
-    console.log("here in mounted");
     // inject into the <a>
     if (emailLink.value) {
-      console.log("in the if");
       emailLink.value.href = `mailto:${email}`;
       emailLink.value.textContent = email;
     }
