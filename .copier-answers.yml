@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.3
+_commit: v0.0.4-1-ga0145f3
 _src_path: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
 app_domain_name: www.elifine.com
 app_name: elifine
@@ -9,9 +9,9 @@ aws_production_account_id: '161272226449'
 aws_region_for_stack: us-east-1
 description: Website
 has_backend: false
+install_claude_cli: false
 is_open_source: true
 node_version: 22.13.0
-pnpm_version: 10.7.0
 python_package_registry: PyPI
 python_version: 3.12.7
 repo_name: elifine-com
