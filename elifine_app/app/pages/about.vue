@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center justify-center">
     <div class="space-y-4">
-      <img :src="headshot" width="50%" />
+      <img :src="headshot" class="w-1/2" />
 
       <!-- LinkedIn -->
       <a
