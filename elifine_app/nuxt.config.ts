@@ -10,8 +10,10 @@ export default defineNuxtConfig({
   // the conditional modules added in by the template make it complicated to format consistently...at least with only 3 'always included' modules
   // prettier-ignore
   modules: [
+    '@nuxt/content',
+    '@nuxt/image',
     "@nuxt/ui",
-        '@nuxt/content',
+        
     '@vueuse/nuxt',
     'nuxt-og-image',
     'motion-v/nuxt',
