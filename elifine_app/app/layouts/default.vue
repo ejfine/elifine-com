@@ -27,7 +27,13 @@
         <template #footer> <UColorModeSwitch data-testid="toggle-color-mode-button" /> </template>
       </UDashboardSidebar>
       <div class="flex-1 h-screen flex flex-col min-w-0">
-        <UHeader toggle-side="left" title="Laboratory Automation, Software & Informatics Consulting">
+        <UHeader toggle-side="left">
+          <template #title>
+            <div class="font-bold text-xl text-highlighted">
+              <span class="hidden lg:inline">Laboratory Automation, Software & Informatics Consulting</span>
+              <span class="lg:hidden">Laboratory Automation,<br />Software & Informatics Consulting</span>
+            </div>
+          </template>
           <template #body
             ><UNavigationMenu :items="links[0]" orientation="vertical" tooltip popover />
             <USeparator />
@@ -36,7 +42,9 @@
           /></template>
         </UHeader>
         <UMain class="flex-1 min-h-0 min-w-0 overflow-auto p-4"> <slot /></UMain>
-        <UFooter> &copy; {{ new Date().getFullYear() }} Eli Fine. All rights reserved.</UFooter>
+        <UFooter :ui="{ root: 'pb-safe' }">
+          &copy; {{ new Date().getFullYear() }} Eli Fine. All rights reserved.</UFooter
+        >
       </div>
     </UDashboardGroup>
   </UApp>
@@ -63,3 +71,17 @@ const links = [
   [{ label: "Contact", to: "/contact", icon: "i-lucide-mail" }],
 ] satisfies NavigationMenuItem[][];
 </script>
+
+<style>
+/* Remove scoped to allow global CSS variable override */
+:root {
+  /* Set header height to 5rem on small screens */
+  --ui-header-height: 5rem !important;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --ui-header-height: 4rem !important;
+  }
+}
+</style>
