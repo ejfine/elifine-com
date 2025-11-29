@@ -7,7 +7,10 @@
         collapsible
         resizable
         class="bg-elevated/25"
-        :ui="{ footer: 'lg:border-t lg:border-default', header: 'lg:border-b lg:border-default' }"
+        :ui="{
+          footer: 'lg:border-t lg:border-default',
+          header: 'lg:border-b lg:border-default',
+        }"
       >
         <template #header="{ collapsed }"> </template>
         <template #default="{ collapsed }">
@@ -24,7 +27,14 @@
         <template #footer> <UColorModeSwitch data-testid="toggle-color-mode-button" /> </template>
       </UDashboardSidebar>
       <div class="flex-1 h-screen flex flex-col min-w-0">
-        <UHeader title="Laboratory Automation, Software & Informatics Consulting" />
+        <UHeader toggle-side="left" title="Laboratory Automation, Software & Informatics Consulting">
+          <template #body
+            ><UNavigationMenu :items="links[0]" orientation="vertical" tooltip popover />
+            <USeparator />
+            <UNavigationMenu :items="links[1]" orientation="vertical" tooltip popover class="mt-auto" />
+            <USeparator class="mb-2" /><UColorModeSwitch data-testid="toggle-color-mode-button"
+          /></template>
+        </UHeader>
         <UMain class="flex-1 min-h-0 min-w-0 overflow-auto p-4"> <slot /></UMain>
         <UFooter> &copy; {{ new Date().getFullYear() }} Eli Fine. All rights reserved.</UFooter>
       </div>
