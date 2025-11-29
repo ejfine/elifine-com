@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 const emailLink = ref<HTMLAnchorElement | null>(null);
 
