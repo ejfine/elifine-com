@@ -11,6 +11,10 @@ export default defineNuxtConfig({
   // prettier-ignore
   modules: [
     "@nuxt/ui",
+        '@nuxt/content',
+    '@vueuse/nuxt',
+    'nuxt-og-image',
+    'motion-v/nuxt',
     ["@nuxt/eslint", { devOnly: true }],
     ["@nuxt/test-utils/module", { devOnly: true }],
   ],
@@ -18,6 +22,8 @@ export default defineNuxtConfig({
   experimental: { appManifest: false }, // https://github.com/nuxt/nuxt/issues/30461#issuecomment-2572616714
   nitro: {
     prerender: {
+      crawlLinks: true,
+      routes: ["/"],
       concurrency: 1, // lower the concurrency to not be such a memory hog
       interval: 200, // ms pause between batches – lets the Garbage Collector catch up
     },
