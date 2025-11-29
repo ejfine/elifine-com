@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center justify-center">
     <div class="space-y-4">
-      <UColorModeImage :light="headshot" :dark="headshot" width="50%" />
+      <img :src="headshot" width="50%" />
 
       <!-- LinkedIn -->
       <a
