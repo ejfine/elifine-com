@@ -1,68 +1,55 @@
-<script setup lang="ts">
-const appConfig = useAppConfig();
-const items = [
-  {
-    label: "Home",
-    to: "/",
-  },
-  {
-    label: "Open Source Tools",
-    to: "/open-source",
-  },
-  {
-    label: "About",
-    to: "/about",
-  },
-  {
-    label: "Contact",
-    to: "/contact",
-  },
-];
-// Map allowed text colors to their Tailwind background classes
-
-const primaryTextColorMap: Record<string, string> = {
-  blue: "text-blue-600",
-  sky: "text-sky-600",
-  red: "text-red-600",
-  green: "text-green-600",
-  slate: "text-slate-600",
-  // Add other allowed values as needed
-};
-
-const primaryTextClass = primaryTextColorMap[appConfig.ui.neutral];
-</script>
-
 <template>
   <UApp>
-    <div class="min-h-screen flex flex-col">
-      <header :class="['bg-slate-100', primaryTextClass, 'py-4']">
-        <UContainer>
-          <div class="flex items-center justify-between">
-            <div class="text-xl font-bold">
-              Laboratory Automation, Software &amp; Informatics Consulting<br />by Eli Fine, PhD
-            </div>
-            <nav>
-              <ul class="flex space-x-4">
-                <UNavigationMenu :items="items" />
-              </ul>
-            </nav>
-          </div>
-        </UContainer>
-      </header>
-
-      <!-- Main content slot -->
-      <main class="flex-grow">
-        <UContainer class="py-8">
-          <slot />
-        </UContainer>
-      </main>
-
-      <!-- Footer -->
-      <footer class="bg-gray-100 text-center py-4">
-        <UContainer>
-          <p class="text-sm">&copy; 2025 Eli Fine. All rights reserved.</p>
-        </UContainer>
-      </footer>
-    </div>
+    <UDashboardGroup>
+      <UDashboardSidebar
+        v-model:open="sidebarOpen"
+        :collapsed="collapsedRef"
+        collapsible
+        resizable
+        class="bg-elevated/25"
+        :ui="{ footer: 'lg:border-t lg:border-default', header: 'lg:border-b lg:border-default' }"
+      >
+        <template #header="{ collapsed }"> </template>
+        <template #default="{ collapsed }">
+          <UNavigationMenu :collapsed="collapsed" :items="links[0]" orientation="vertical" tooltip popover />
+          <UNavigationMenu
+            :collapsed="collapsed"
+            :items="links[1]"
+            orientation="vertical"
+            tooltip
+            popover
+            class="mt-auto"
+          />
+        </template>
+        <template #footer> <UColorModeSwitch data-testid="toggle-color-mode-button" /> </template>
+      </UDashboardSidebar>
+      <div class="flex-1 h-screen flex flex-col min-w-0">
+        <UHeader title="Laboratory Automation, Software & Informatics Consulting" />
+        <UMain class="flex-1 min-h-0 min-w-0 overflow-auto p-4"> <slot /></UMain>
+        <UFooter> &copy; {{ new Date().getFullYear() }} Eli Fine. All rights reserved.</UFooter>
+      </div>
+    </UDashboardGroup>
   </UApp>
 </template>
+<script setup lang="ts">
+import type { NavigationMenuItem } from "@nuxt/ui";
+
+const sidebarOpen = ref(false);
+const collapsedRef = ref(false);
+defineExpose({
+  collapsedRef, // needed for unit testing
+});
+const links = [
+  [
+    {
+      label: "Home",
+      to: "/",
+      icon: "i-lucide-house",
+    },
+    { label: "About", to: "/about", icon: "i-lucide-info" },
+    { label: "Open Source Tools", to: "/open-source", icon: "i-lucide-file-code" },
+  ],
+
+  [{ label: "Contact", to: "/contact", icon: "i-lucide-mail" }],
+] satisfies NavigationMenuItem[][];
+</script>

@@ -1,7 +1,8 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="flex flex-col items-center justify-center">
     <div class="space-y-4">
-      <img src="/eli-headshot.png" width="50%" />
+      <UColorModeImage :light="headshot" :dark="headshot" width="50%" />
+
       <!-- LinkedIn -->
       <a
         href="https://www.linkedin.com/in/elifine"
@@ -52,7 +53,9 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import headshot from "~/assets/images/eli-headshot.png";
+</script>
 
 <style>
 /* Optional: Add global styles or modify TailwindCSS styles */

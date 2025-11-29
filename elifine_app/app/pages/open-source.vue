@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 px-4">
+  <div>
     <div class="max-w-3xl mx-auto">
-      <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Open Source Tools</h1>
+      <h1 class="text-3xl font-bold text-center mb-8">Open Source Tools</h1>
       <ul class="space-y-8">
-        <li v-for="(item, index) in items" :key="index" class="bg-white shadow rounded-lg p-6">
-          <h2 class="text-2xl font-semibold text-gray-700">
+        <li v-for="(item, index) in items" :key="index" class="shadow rounded-lg p-6 bg-elevated/75">
+          <h2 class="text-2xl font-semibold">
             {{ item.title }}
           </h2>
-          <p class="mt-2 text-gray-600">
+          <p class="mt-2">
             {{ item.description }}
           </p>
           <!-- Additional links section -->
@@ -16,12 +16,12 @@
               :href="item.githubLink"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center space-x-2 text-blue-500 hover:underline"
+              class="flex items-center space-x-2 hover:underline"
             >
               <Icon name="mdi:github" />
               <span>GitHub Repo</span>
             </a>
-            <a :href="item.infoLink" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">
+            <a :href="item.infoLink" target="_blank" rel="noopener noreferrer" class="hover:underline">
               More Information
             </a>
           </div>
