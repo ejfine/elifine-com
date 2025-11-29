@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="flex flex-col items-center justify-center">
     If you're interested in my work or have any questions, feel free to reach out via email:
     <ClientOnly><a ref="emailLink">[loading email…]</a></ClientOnly>
   </div>

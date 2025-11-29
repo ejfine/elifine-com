@@ -1,7 +1,8 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="flex flex-col items-center justify-center">
     <div class="space-y-4">
-      <img src="/eli-headshot.png" width="50%" />
+      <img :src="headshot" class="w-1/2" />
+
       <!-- LinkedIn -->
       <a
         href="https://www.linkedin.com/in/elifine"
@@ -18,7 +19,7 @@
         href="https://github.com/ejfine"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center space-x-2 text-gray-800 hover:underline"
+        class="flex items-center space-x-2 hover:underline"
       >
         <Icon name="mdi:github" />
         <span>GitHub</span>
@@ -52,7 +53,9 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import headshot from "~/assets/images/eli-headshot.png";
+</script>
 
 <style>
 /* Optional: Add global styles or modify TailwindCSS styles */

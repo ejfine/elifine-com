@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+  <div class="flex flex-col items-center justify-center min-h-screen p-4">
     <!-- Header with enhanced typography and spacing -->
-    <h1 class="text-4xl font-bold text-gray-800 mb-6">Yardwork for 1530 Walker St</h1>
+    <h1 class="text-4xl font-bold mb-6">Yardwork for 1530 Walker St</h1>
 
     <!-- Main content wrapped in a paragraph for better semantics and centered text -->
-    <p class="text-center text-gray-600 text-lg max-w-2xl">
+    <p class="text-center text-lg max-w-2xl">
       <br />The yard is entirely shaded and doesn't grow quickly, so it doesn't lend itself well to a regular schedule.
       Over the past few years, there's typically 4-5 times during the spring/summer/fall where the grass needs to be
       cut, and 3-4 times during the fall/winter where the leaves need to be cleaned up. It's usually taken teams in the
@@ -25,17 +25,17 @@
     </ul>
     <br />
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Property Overview</h2>
+    <h2 class="text-2xl font-bold mb-6">Property Overview</h2>
     <UModal fullscreen title="Property Overview">
       <img
-        src="/yard/yardwork.png"
+        :src="propertyOverview"
         width="50%"
         class="cursor-pointer"
         loading="lazy"
         alt="Overview of the yard at 1530 Walker St"
       />
       <template #body>
-        <img src="/yard/yardwork.png" width="100%" loading="lazy" alt="Detailed view of the yard at 1530 Walker St" />
+        <img :src="propertyOverview" width="100%" loading="lazy" alt="Detailed view of the yard at 1530 Walker St" />
       </template>
     </UModal>
 
@@ -59,15 +59,22 @@
 </template>
 
 <script setup lang="ts">
+import drivewayHedges from "~/assets/images/yard/driveway-hedges.jpg";
+import frontYard from "~/assets/images/yard/front-yard.jpg";
+import playground from "~/assets/images/yard/playground.jpg";
+import sideYard from "~/assets/images/yard/side-yard.jpg";
+import upperBackyard from "~/assets/images/yard/upper-backyard.jpg";
+import propertyOverview from "~/assets/images/yard/yardwork.png";
+
 definePageMeta({
   layout: "yard",
 });
 
 const yardSections = [
-  { title: "Front Yard", image: "/yard/front-yard.jpg" },
-  { title: "Side Yard", image: "/yard/side-yard.jpg" },
-  { title: "Upper Backyard", image: "/yard/upper-backyard.jpg" },
-  { title: "Driveway Hedges", image: "/yard/driveway-hedges.jpg" },
-  { title: "Playground", image: "/yard/playground.jpg" },
+  { title: "Front Yard", image: frontYard },
+  { title: "Side Yard", image: sideYard },
+  { title: "Upper Backyard", image: upperBackyard },
+  { title: "Driveway Hedges", image: drivewayHedges },
+  { title: "Playground", image: playground },
 ];
 </script>
