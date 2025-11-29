@@ -19,7 +19,7 @@
         href="https://github.com/ejfine"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center space-x-2 text-gray-800 hover:underline"
+        class="flex items-center space-x-2 hover:underline"
       >
         <Icon name="mdi:github" />
         <span>GitHub</span>
