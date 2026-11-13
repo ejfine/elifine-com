@@ -3,5 +3,10 @@
     "description": "infrastructure",
     "relative_directory": "./infrastructure",
     "package_manager": "uv"
+  },
+  {
+    "description": "app-frontend",
+    "relative_directory": "elifine_app",
+    "package_manager": "pnpm"
   }
 ]

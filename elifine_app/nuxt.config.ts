@@ -17,6 +17,11 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   experimental: { appManifest: false }, // https://github.com/nuxt/nuxt/issues/30461#issuecomment-2572616714
   nitro: {
+    esbuild: {
+      options: {
+        target: "es2024", // no specific reason for pinning to this version, but the default for nitro was 2019, so using something a bit more modern
+      },
+    },
     prerender: {
       concurrency: 1, // lower the concurrency to not be such a memory hog
       interval: 200, // ms pause between batches – lets the Garbage Collector catch up

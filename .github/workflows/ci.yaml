@@ -1,3 +1,10 @@
+# ============== WARNING ==============================================================================
+# File is managed by copier template: gh:LabAutomationAndScreening/copier-base-template.git
+# See .config/.copier-managed-files.json for details.
+#
+# You are welcome to make changes to this file in your repo if they are custom to your project,
+# but if the change should be shared with other projects, please backport it to the template repo.
+# =====================================================================================================
 name: CI
 
 on:
@@ -5,49 +12,152 @@ on:
     branches-ignore:
       - 'gh-readonly-queue/**' # don't run (again) when on these special branches created during merge groups; the `on: merge_group` already triggers it.
   merge_group:
+  pull_request:
 
 env:
   PYTHONUNBUFFERED: True
   PRE_COMMIT_HOME: ${{ github.workspace }}/.precommit_cache
 
 permissions:
-    id-token: write
-    contents: write # needed for mutex
+  id-token: write # needed to assume OIDC roles (e.g. for downloading from CodeArtifact)
+  contents: read # need to explicitly provide this whenever defining permissions because the default value is 'none' for anything not explicitly set when permissions are defined
 
 jobs:
   get-values:
     uses: ./.github/workflows/get-values.yaml
     permissions:
-      contents: write # needed updating dependabot branches
+      contents: write # needed for updating dependabot branches
+
+  check-skip-duplicate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      pull-requests: read # needed to check if PR exists for current branch
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - id: check
+        uses: ./.github/actions/check-skip-duplicates
 
   lint:
-    needs: [ get-values ]
+    needs:
+      - get-values
+      - check-skip-duplicate
+    if: needs.check-skip-duplicate.outputs.should-run == 'true'
     name: Pre-commit
     uses: ./.github/workflows/pre-commit.yaml
     permissions:
       contents: write # needed for mutex
       id-token: write # needed to assume OIDC roles (e.g. for downloading from CodeArtifact)
     with:
-      python-version: 3.12.7
+      python-version: 3.13.9
 
-
-
-
-
-  required-check:
+  build-app-frontend:
+    needs:
+      - check-skip-duplicate
+      - lint
+    if: needs.check-skip-duplicate.outputs.should-run == 'true'
+    timeout-minutes: 8
     runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install latest versions of node packages
+        uses: ./.github/actions/install_deps
+        with:
+          node-version: 24.22.1
+          skip-installing-ssm-plugin-manager: true
+          skip-installing-pulumi-cli: true
+
+      - name: Build frontend
+        run: pnpm --dir=elifine_app generate
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: app-frontend-static-assets
+          path: elifine_app/.output/public/**/*
+          if-no-files-found: error
+
+
+
+
+  pulumi-prod:
+    uses: ./.github/workflows/pulumi-aws.yml
+    needs:
+      - build-app-frontend
+      - check-skip-duplicate
+    if: needs.check-skip-duplicate.outputs.should-run == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.ref == 'refs/heads/main')
     permissions:
-      statuses: write # needed for updating status on Dependabot PRs
+      id-token: write # needed to assume OIDC roles (e.g. for downloading from CodeArtifact)
+      contents: write # needed for mutex
+      pull-requests: write # needed to potentially post the preview on the PR as a comment
+    with:
+      AWS_REGION: us-east-1
+      PULUMI_STACK_NAME: prod
+      PYTHON_VERSION: 3.13.9
+      PROJECT_DIR: ./infrastructure
+      DEPLOY_SCRIPT_MODULE_NAME: infrastructure
+      PULUMI_PREVIEW: true
+      PREVIEW_ROLE_NAME: InfraPreview--elifine-com
+      PULUMI_UP: ${{ github.ref == 'refs/heads/main' }}
+      PULUMI_UP_ROLE_NAME: InfraDeploy--elifine-com
+      AWS_ACCOUNT_ID: "161272226449"
+      SHOW_PREVIEW_COMMENT_ON_PR: ${{ github.event_name == 'pull_request' }}
+      DOWNLOAD_ARTIFACT_NAME: app-frontend-static-assets
+      DOWNLOAD_ARTIFACT_PATH: elifine_app/.output/public/
+
+  confirm-on-tagged-copier-template:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+    uses: ./.github/workflows/confirm-on-tagged-copier-template.yaml
+
+  workflow-summary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
     needs:
       - get-values
       - lint
+      - build-app-frontend
+      - pulumi-prod
+      - check-skip-duplicate
+      - confirm-on-tagged-copier-template
+    permissions:
+      statuses: write # needed for updating status on Dependabot PRs
     if: always()
     steps:
       - name: fail if prior job failure
-        if: needs.lint.result != 'success'
+        # Iterating the needs context keeps this gate from drifting out of sync with the job list above
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         run: |
-          exit 1
-      - name: Mark updated Dependabot commit of devcontainer hash as succeeded
+          # these are the possibilities: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#needs-context
+          not_ok=$(jq -r 'to_entries[] | select(.value.result | test("^(skipped|success)$") | not) | .key' <<<"$NEEDS")
+
+          if [[ -n "$not_ok" ]]; then
+            echo "❌ One or more jobs did not finish with skipped or success:"
+            echo "$not_ok"
+            exit 1
+          fi
+          echo "✅ All jobs finished with skipped or success"
+
+      - name: Mark the required-check as succeeded so the PR can be merged
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api \
+            -X POST -H "Accept: application/vnd.github.v3+json" \
+            "${{ github.event.pull_request.statuses_url }}" \
+            -f state=success -f context="required-check" -f description="✅ All required checks passed in the job triggered by pull_request" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Mark updated dependabot hash commit as succeeded
         if: needs.get-values.outputs.dependabot-commit-created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
