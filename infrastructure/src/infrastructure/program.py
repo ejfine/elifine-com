@@ -1,11 +1,20 @@
+# ============== WARNING ==============================================================================
+# File is managed by copier template: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
+# See .config/.copier-managed-files.json for details.
+#
+# You are welcome to make changes to this file in your repo if they are custom to your project,
+# but if the change should be shared with other projects, please backport it to the template repo.
+# =====================================================================================================
+import hashlib
 import logging
 import mimetypes
 import os
+from collections.abc import Sequence
 from pathlib import Path
-from uuid import uuid4
 
 import pulumi
 from ephemeral_pulumi_deploy import append_resource_suffix
+from ephemeral_pulumi_deploy import common_tags
 from ephemeral_pulumi_deploy import common_tags_native
 from ephemeral_pulumi_deploy import get_aws_account_id
 from ephemeral_pulumi_deploy import get_config_str
@@ -14,6 +23,8 @@ from pulumi import Output
 from pulumi import Resource
 from pulumi import ResourceOptions
 from pulumi import export
+from pulumi_aws.acm import Certificate
+from pulumi_aws.acm.outputs import CertificateDomainValidationOption
 from pulumi_aws.iam import GetPolicyDocumentStatementArgs
 from pulumi_aws.iam import GetPolicyDocumentStatementPrincipalArgs
 from pulumi_aws.iam import get_policy_document
@@ -24,6 +35,9 @@ from pulumi_command.local import Command
 
 from .jinja_constants import APP_DIRECTORY_NAME
 from .jinja_constants import APP_DOMAIN_NAME
+from .jinja_constants import ATTACH_ACM_CERT_TO_CLOUDFRONT
+
+RAW_DOMAIN_NAME = APP_DOMAIN_NAME.removeprefix("www.")
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +46,27 @@ repo_root = Path(__file__).parent.parent.parent.parent
 
 def _get_mime_type(file_path: Path) -> str:
     content_type, _ = mimetypes.guess_type(file_path)
-    return content_type or "application/octet-stream"
+    if content_type is None:
+        return "application/octet-stream"
+    return content_type
+
+
+def _compute_directory_hash(base_dir: Path) -> str:
+    """Compute a hash of all files in a directory based on their paths and content."""
+    hash_md5 = hashlib.md5()  # noqa: S324 # we don't care about security here, just if files have changed for creating the invalidation
+
+    for dirpath, _, filenames in sorted(os.walk(base_dir)):
+        for filename in sorted(filenames):
+            file_path = Path(dirpath) / filename
+            rel_path = os.path.relpath(file_path, base_dir)
+
+            # Hash the relative path
+            hash_md5.update(rel_path.encode())
+
+            with file_path.open("rb") as f:
+                hash_md5.update(f.read())
+
+    return hash_md5.hexdigest()
 
 
 def _upload_assets_to_s3(*, bucket_id: Output[str], base_dir: Path) -> list[Resource]:
@@ -54,6 +88,8 @@ def _upload_assets_to_s3(*, bucket_id: Output[str], base_dir: Path) -> list[Reso
                     bucket=bucket_id,
                     key=s3_key,
                     source=pulumi.FileAsset(str(file_path)),
+                    source_hash=hashlib.md5(file_path.read_bytes()).hexdigest(),  # noqa: S324 # we're just using this for change detection, not security
+                    tags=common_tags(),
                 )
             )
     return uploads
@@ -79,11 +115,9 @@ def pulumi_program() -> None:
         ),
     )
     export("app-bucket-website-url", app_website_bucket.website_url)
-    _ = app_website_bucket.bucket_name.apply(
-        lambda bucket_name: s3.BucketPolicy(
-            append_resource_suffix("app-website"),
-            bucket=bucket_name,
-            policy_document=get_policy_document(
+    policy_json = app_website_bucket.bucket_name.apply(
+        lambda name: (
+            get_policy_document(
                 statements=[
                     GetPolicyDocumentStatementArgs(
                         effect="Allow",
@@ -94,61 +128,93 @@ def pulumi_program() -> None:
                             )
                         ],
                         actions=["s3:GetObject"],
-                        resources=[f"arn:aws:s3:::{bucket_name}/*"],
+                        resources=[f"arn:aws:s3:::{name}/*"],
                     ),
                 ]
-            ).json,
+            ).json
         )
     )
-    all_uploads = _upload_assets_to_s3(
-        bucket_id=app_website_bucket.id, base_dir=repo_root / APP_DIRECTORY_NAME / ".output" / "public"
+    _ = s3.BucketPolicy(
+        append_resource_suffix("app-website"),
+        bucket=app_website_bucket.bucket_name,
+        policy_document=policy_json,
     )
+    static_files_dir = repo_root / APP_DIRECTORY_NAME / ".output" / "public"
+
+    all_uploads = _upload_assets_to_s3(bucket_id=app_website_bucket.id, base_dir=static_files_dir)
     if env in PROTECTED_ENVS:
+        certificate = Certificate(
+            append_resource_suffix("certificate"),
+            domain_name=f"*.{RAW_DOMAIN_NAME}",
+            validation_method="DNS",
+            region="us-east-1",  # ACM certificates for CloudFront must be in us-east-1 (see: https://docs.aws.amazon.com/acm/latest/userguide/acm-services.html#acm-cloudfront)
+            tags=common_tags(),
+        )
         origin_id = "S3OriginMyBucket"
-        app_cloudfront = app_website_bucket.website_url.apply(
-            lambda full_url: cloudfront.Distribution(
-                append_resource_suffix("app"),
-                distribution_config=cloudfront.DistributionConfigArgs(
-                    price_class="PriceClass_100",
-                    origins=[
-                        cloudfront.DistributionOriginArgs(
-                            domain_name=full_url.removeprefix("http://"),
-                            id=origin_id,
-                            custom_origin_config=cloudfront.DistributionCustomOriginConfigArgs(
-                                http_port=80,
-                                https_port=443,
-                                origin_protocol_policy="http-only",
-                                origin_ssl_protocols=["TLSv1.2"],
-                            ),
-                        )
-                    ],
-                    default_cache_behavior=cloudfront.DistributionDefaultCacheBehaviorArgs(
-                        target_origin_id=origin_id,
-                        viewer_protocol_policy="redirect-to-https",
-                        allowed_methods=["GET", "HEAD"],
-                        cached_methods=["GET", "HEAD"],
-                        forwarded_values=cloudfront.DistributionForwardedValuesArgs(
-                            query_string=False, cookies=cloudfront.DistributionCookiesArgs(forward="none")
+        origin_domain = app_website_bucket.website_url.apply(lambda full_url: full_url.removeprefix("http://"))
+        viewer_certificate = cloudfront.DistributionViewerCertificateArgs(cloud_front_default_certificate=True)
+        aliases: list[str] = []
+        if ATTACH_ACM_CERT_TO_CLOUDFRONT:
+            aliases.append(APP_DOMAIN_NAME)
+            viewer_certificate = cloudfront.DistributionViewerCertificateArgs(  # TODO: determine if this needs to be attached to EVERY distribution, or just a single distribution unrelated to the actual bucket
+                acm_certificate_arn=certificate.arn,
+                ssl_support_method="sni-only",
+                minimum_protocol_version="TLSv1.2_2021",
+            )
+        app_cloudfront = cloudfront.Distribution(
+            append_resource_suffix("app"),
+            distribution_config=cloudfront.DistributionConfigArgs(
+                aliases=aliases,
+                price_class="PriceClass_100",
+                comment=f"{RAW_DOMAIN_NAME} App CloudFront Distribution",
+                origins=[
+                    cloudfront.DistributionOriginArgs(
+                        domain_name=origin_domain,
+                        id=origin_id,
+                        custom_origin_config=cloudfront.DistributionCustomOriginConfigArgs(
+                            http_port=80,
+                            https_port=443,
+                            origin_protocol_policy="http-only",
+                            origin_ssl_protocols=["TLSv1.2"],
                         ),
-                    ),
-                    enabled=True,
-                    ipv6_enabled=True,
-                    default_root_object="index.html",
-                    restrictions=cloudfront.DistributionRestrictionsArgs(
-                        geo_restriction=cloudfront.DistributionGeoRestrictionArgs(restriction_type="none")
-                    ),
-                    viewer_certificate=cloudfront.DistributionViewerCertificateArgs(
-                        cloud_front_default_certificate=True
+                    )
+                ],
+                default_cache_behavior=cloudfront.DistributionDefaultCacheBehaviorArgs(
+                    target_origin_id=origin_id,
+                    viewer_protocol_policy="redirect-to-https",
+                    allowed_methods=["GET", "HEAD"],
+                    cached_methods=["GET", "HEAD"],
+                    forwarded_values=cloudfront.DistributionForwardedValuesArgs(
+                        query_string=False, cookies=cloudfront.DistributionCookiesArgs(forward="none")
                     ),
                 ),
-                tags=common_tags_native(),
-            )
+                enabled=True,
+                ipv6_enabled=True,
+                default_root_object="index.html",
+                restrictions=cloudfront.DistributionRestrictionsArgs(
+                    geo_restriction=cloudfront.DistributionGeoRestrictionArgs(restriction_type="none")
+                ),
+                viewer_certificate=viewer_certificate,
+            ),
+            tags=common_tags_native(),
         )
+
         export("app-cloudfront-domain-name", app_cloudfront.domain_name)
         _ = Command(
             append_resource_suffix("app-cloudfront-invalidation"),
             create=app_cloudfront.id.apply(
-                lambda distribution_id: f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" && echo {uuid4()}'
+                lambda distribution_id: (
+                    f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" && echo {_compute_directory_hash(static_files_dir)}'
+                )
             ),
             opts=ResourceOptions(depends_on=all_uploads),
         )
+
+        def _extract_host(options: Sequence[CertificateDomainValidationOption]) -> str:
+            record_name = options[0].resource_record_name
+            assert record_name is not None
+            return record_name.removesuffix(f".{RAW_DOMAIN_NAME}.")
+
+        cname_host = certificate.domain_validation_options.apply(_extract_host)
+        export("certificate-cname-host", cname_host)
+        export("certificate-cname-value", certificate.domain_validation_options[0].resource_record_value)
