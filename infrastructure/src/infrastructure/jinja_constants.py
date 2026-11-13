@@ -7,5 +7,5 @@
 # =====================================================================================================
 APP_DOMAIN_NAME = "www.elifine.com"
 APP_DIRECTORY_NAME = "elifine_app"
-ATTACH_ACM_CERT_TO_CLOUDFRONT = False
+ATTACH_ACM_CERT_TO_CLOUDFRONT = True
 REDIRECT_BARE_DOMAIN_TO_APP_DOMAIN = True
