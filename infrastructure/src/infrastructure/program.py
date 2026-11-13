@@ -44,35 +44,25 @@ RAW_DOMAIN_NAME = APP_DOMAIN_NAME.removeprefix("www.")
 
 # CloudFront Functions (cloudfront-js-2.0) run in a restricted JavaScript runtime at the edge for every viewer request,
 # so this stays dependency-free. BARE_DOMAIN and APP_DOMAIN are prepended as variable declarations when it is deployed.
+# rawQueryString() is the query string exactly as the viewer sent it (undefined when the URL has no `?`); the parsed
+# request.querystring object would lose the parameters' order.
+# TODO: once this template has an E2E harness that runs against a deployed stack, cover the redirect there:
+#   - https://<bare>/path?b=2&a=1 answers 301 with Location https://<app>/path?b=2&a=1 (path and parameter order kept)
+#   - a URL ending in a bare `?`, and one with no query string at all
+#   - a request for the app domain passes through and is served (200)
+#   - http://<bare> ends at https://<app>
 BARE_DOMAIN_REDIRECT_FUNCTION_BODY = """
-function querystringSuffix(querystring) {
-    var parts = [];
-    for (var key in querystring) {
-        var entry = querystring[key];
-        if (entry.multiValue) {
-            for (var i = 0; i < entry.multiValue.length; i++) {
-                parts.push(key + "=" + entry.multiValue[i].value);
-            }
-        } else {
-            parts.push(key + "=" + entry.value);
-        }
-    }
-    if (parts.length === 0) {
-        return "";
-    }
-    return "?" + parts.join("&");
-}
-
 function handler(event) {
     var request = event.request;
     if (request.headers.host.value !== BARE_DOMAIN) {
         return request;
     }
+    var querystring = request.rawQueryString();
     return {
         statusCode: 301,
         statusDescription: "Moved Permanently",
         headers: {
-            location: { value: "https://" + APP_DOMAIN + request.uri + querystringSuffix(request.querystring) },
+            location: { value: "https://" + APP_DOMAIN + request.uri + (querystring === undefined ? "" : "?" + querystring) },
         },
     };
 }

@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.20
+_commit: v0.0.20-2-g8bd8117
 _src_path: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
 app_domain_name: www.elifine.com
 app_name: elifine
@@ -17,6 +17,7 @@ pnpm_minimum_release_age_exclude: ''
 pull_from_ecr: false
 python_package_registry: PyPI
 python_version: 3.13.9
+redirect_bare_domain_to_app_domain: true
 repo_name: elifine-com
 repo_names_for_codespaces_read_permissions: ''
 repo_org_name: ejfine
