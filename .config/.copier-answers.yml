@@ -20,6 +20,6 @@ python_version: 3.13.9
 repo_name: elifine-com
 repo_names_for_codespaces_read_permissions: ''
 repo_org_name: ejfine
-ssh_port_number: 56219
+ssh_port_number: 49111
 use_staging_environment: false
 
