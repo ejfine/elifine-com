@@ -111,6 +111,34 @@ repos:
           )$
         files: \.(vue|html)$
 
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: typescript-check
+        entry: bash -c "pnpm --dir elifine_app type-check"
+        files: '.+\.ts$|.+\.vue$'
+        # don't pass filenames else the command line sees them twice
+        pass_filenames: false
+        language: system
+        # use require_serial so that script is only called once per commit
+        require_serial: true
+        # print the number of files as a sanity-check
+        verbose: true
+
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: bash -c "pnpm --dir elifine_app lint"
+        files: '.+\.ts$|.+\.vue$|.+\.js$'
+        # don't pass filenames else the command line sees them twice
+        pass_filenames: false
+        language: system
+        # use require_serial so that script is only called once per commit
+        require_serial: true
+        # print the number of files as a sanity-check
+        verbose: true
+
 
   - repo: https://github.com/pamoller/xmlformatter
     rev: bf91234ba2949363eec3429c4ecc2b39a9e8bfce  # frozen: v0.2.9

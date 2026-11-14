@@ -129,6 +129,8 @@ jobs:
       id-token: write # needed to assume OIDC roles (e.g. for downloading from CodeArtifact)
     with:
       python-version: 3.13.9
+      setup-node: true
+      node-version: 24.22.1
 
   build-app-frontend:
     needs:
@@ -159,13 +161,54 @@ jobs:
           path: elifine_app/.output/public/**/*
           if-no-files-found: error
 
+  e2e-test-build:
+    name: End-to-end Testing (build artifact)
+    needs:
+      - build-app-frontend
+      - check-skip-duplicate
+    if: needs.check-skip-duplicate.outputs.should-run == 'true'
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    env:
+      INSTALL_PLAYWRIGHT_BROWSERS: "1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
 
+      - name: Install latest versions of node packages
+        uses: ./.github/actions/install_deps
+        with:
+          node-version: 24.22.1
+          skip-installing-ssm-plugin-manager: true
+          skip-installing-pulumi-cli: true
 
+      - name: Download build artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: app-frontend-static-assets
+          path: elifine_app/.output/public/
+
+      - name: E2E test
+        run: pnpm --dir=elifine_app test-e2e
+
+      - name: Upload Playwright report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: playwright-report-build
+          path: |
+            elifine_app/playwright-report
+            elifine_app/test-results
+          if-no-files-found: error
+          retention-days: 5
+
+      - uses: ./.github/actions/confirm-git-tree-clean
 
   pulumi-prod:
     uses: ./.github/workflows/pulumi-aws.yml
     needs:
       - build-app-frontend
+      - e2e-test-build
       - check-skip-duplicate
     if: needs.check-skip-duplicate.outputs.should-run == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.ref == 'refs/heads/main')
     permissions:
@@ -191,11 +234,30 @@ jobs:
   e2e-test-prod:
     name: End-to-end Testing (production)
     needs:
+      - build-app-frontend
       - pulumi-prod
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     timeout-minutes: 15
     runs-on: ubuntu-24.04
+    env:
+      INSTALL_PLAYWRIGHT_BROWSERS: "1"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install latest versions of node packages
+        uses: ./.github/actions/install_deps
+        with:
+          node-version: 24.22.1
+          skip-installing-ssm-plugin-manager: true
+          skip-installing-pulumi-cli: true
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: app-frontend-static-assets
+          path: ${{ runner.temp }}/expected-static-assets/
+
       - name: AWS OIDC
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -208,6 +270,25 @@ jobs:
           INVALIDATION_ID: ${{ fromJSON(needs.pulumi-prod.outputs.stack-outputs)['-app-cloudfront-invalidation-id'] }}
         run: aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
 
+      - name: E2E test
+        env:
+          VRT_BASE_URL: https://www.elifine.com
+          EXPECTED_STATIC_ASSETS_DIR: ${{ runner.temp }}/expected-static-assets
+        run: pnpm --dir=elifine_app test-e2e
+
+      - name: Upload Playwright report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: playwright-report-prod
+          path: |
+            elifine_app/playwright-report
+            elifine_app/test-results
+          if-no-files-found: error
+          retention-days: 5
+
+      - uses: ./.github/actions/confirm-git-tree-clean
+
   confirm-on-tagged-copier-template:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
     uses: ./.github/workflows/confirm-on-tagged-copier-template.yaml
@@ -219,6 +300,7 @@ jobs:
       - get-values
       - lint
       - build-app-frontend
+      - e2e-test-build
       - pulumi-prod
       - e2e-test-prod
       - check-skip-duplicate

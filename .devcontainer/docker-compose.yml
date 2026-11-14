@@ -24,7 +24,7 @@ services:
       - node_modules:/workspaces/elifine-com/node_modules
     command: sleep infinity
     ports:
-      - "56219:2222"
+      - "49111:2222"
     environment:
       - AWS_PROFILE=localstack
       - AWS_DEFAULT_REGION=us-east-1
