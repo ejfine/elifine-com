@@ -272,7 +272,7 @@ def pulumi_program() -> None:
             triggers=[_compute_directory_hash(static_files_dir)],
             opts=ResourceOptions(depends_on=all_uploads),
         )
-        export("app-cloudfront-invalidation-id", invalidation.stdout)
+        export("-app-cloudfront-invalidation-id", invalidation.stdout)
 
         def _extract_host(options: Sequence[CertificateDomainValidationOption]) -> str:
             record_name = options[0].resource_record_name
