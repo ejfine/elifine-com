@@ -57,7 +57,7 @@ on:
         default: false
         type: boolean
       POST_DEPLOY_E2E_TEST_DIR:
-        description: 'Relative path to a directory whose package.json has a test-e2e script. When set, after Pulumi Up and still holding the stack mutex, runs `pnpm test-e2e` there against the deployed stack. The suite gets the stack outputs file path in E2E_STACK_OUTPUTS_FILE and the downloaded artifact path in EXPECTED_STATIC_ASSETS_DIR'
+        description: 'Relative path to a directory whose package.json has a test-e2e script. When set, after Pulumi Up and still holding the stack mutex, runs `pnpm test-e2e` there against the deployed stack. The suite gets the stack outputs file path in E2E_STACK_OUTPUTS_FILE and, when DOWNLOAD_ARTIFACT_PATH is set, the downloaded artifact path in EXPECTED_STATIC_ASSETS_DIR'
         required: false
         default: ''
         type: string
@@ -236,9 +236,13 @@ jobs:
         env:
           STACK_OUTPUTS: ${{ steps.pulumi-up.outputs.stack-outputs }}
           E2E_STACK_OUTPUTS_FILE: ${{ runner.temp }}/stack-outputs.json
-          EXPECTED_STATIC_ASSETS_DIR: ${{ github.workspace }}/${{ inputs.DOWNLOAD_ARTIFACT_PATH }}
+          DOWNLOAD_ARTIFACT_PATH: ${{ inputs.DOWNLOAD_ARTIFACT_PATH }}
         run: |
           printf '%s' "$STACK_OUTPUTS" > "$E2E_STACK_OUTPUTS_FILE"
+          # the suite skips its byte-for-byte artifact comparison when this is unset, so set it only when an artifact was downloaded
+          if [ -n "$DOWNLOAD_ARTIFACT_PATH" ]; then
+            export EXPECTED_STATIC_ASSETS_DIR="$GITHUB_WORKSPACE/$DOWNLOAD_ARTIFACT_PATH"
+          fi
           pnpm --dir=${{ inputs.POST_DEPLOY_E2E_TEST_DIR }} test-e2e
 
       - name: Upload Playwright report on E2E failure
