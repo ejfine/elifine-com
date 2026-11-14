@@ -44,7 +44,8 @@
         <UMain class="flex-1 min-h-0 min-w-0 overflow-auto p-4"> <slot /></UMain>
         <!-- On mobile, the copyright is covered up by the navigation buttons of the phone, so adding some extra padding...the safe-area-inset-bottom doesn't seem to help, so always adding at least 1 rem for now -->
         <UFooter style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
-          &copy; {{ new Date().getFullYear() }} Eli Fine. All rights reserved.</UFooter
+          &copy; <span data-testid="copyright-year">{{ new Date().getFullYear() }}</span> Eli Fine. All rights
+          reserved.</UFooter
         >
       </div>
     </UDashboardGroup>
