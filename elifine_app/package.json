@@ -16,8 +16,8 @@
     "test-unit:watch": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/compiled/**\"",
     "test-compiled": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/unit/**\" --test-timeout=15000 --run",
     "serve-static": "node scripts/serve-static.ts",
-    "test-e2e": "[ \"${CI}\" = \"true\" ] || [ -n \"${VRT_BASE_URL}\" ] || nuxt generate && playwright test",
-    "test-e2e:update-snapshots": "[ \"${CI}\" = \"true\" ] || [ -n \"${VRT_BASE_URL}\" ] || nuxt generate && playwright test --update-snapshots all",
+    "test-e2e": "node ./scripts/prepare-e2e.mjs && playwright test",
+    "test-e2e:update-snapshots": "node ./scripts/prepare-e2e.mjs && playwright test --update-snapshots all",
     "test-compiled:watch": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/unit/**\" --test-timeout=15000"
   },
   "dependencies": {
