@@ -12,7 +12,7 @@
           header: 'lg:border-b lg:border-default',
         }"
       >
-        <template #header="{ collapsed }"> </template>
+        <template #header />
         <template #default="{ collapsed }">
           <UNavigationMenu :collapsed="collapsed" :items="links[0]" orientation="vertical" tooltip popover />
           <UNavigationMenu

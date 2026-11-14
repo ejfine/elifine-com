@@ -129,6 +129,8 @@ jobs:
       id-token: write # needed to assume OIDC roles (e.g. for downloading from CodeArtifact)
     with:
       python-version: 3.13.9
+      setup-node: true
+      node-version: 24.22.1
 
   build-app-frontend:
     needs:

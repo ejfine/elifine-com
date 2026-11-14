@@ -13,6 +13,7 @@ export default withNuxt(
           },
         },
       ],
+      "vue/html-self-closing": ["error", { html: { void: "always" } }], // match prettier, which always writes void elements as <br />; the rule's default ("never") autofixes them to <br >, and the two formatters then fight
     },
   },
   {
