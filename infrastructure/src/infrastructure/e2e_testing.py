@@ -11,6 +11,9 @@ from pulumi_aws.iam import Role
 from pulumi_aws.iam import RolePolicy
 from pulumi_aws.iam import get_policy_document
 
+IAM_INLINE_POLICY_NAME_MAX_LENGTH = 128
+PULUMI_AUTONAME_SUFFIX_LENGTH = 8  # a dash and 7 random characters
+
 
 class E2eTesting(ComponentResource):
     """The IAM role the end-to-end test suite assumes when it runs against a deployed stack.
@@ -58,7 +61,10 @@ class E2eTesting(ComponentResource):
 
     def grant(self, *, policy_name: str, policy_json: Input[str]) -> None:
         _ = RolePolicy(
-            append_resource_suffix(f"E2eTestPolicy-{policy_name}"),
+            append_resource_suffix(
+                f"E2eTestPolicy-{policy_name}",
+                max_length=IAM_INLINE_POLICY_NAME_MAX_LENGTH - PULUMI_AUTONAME_SUFFIX_LENGTH,
+            ),
             role=self.role.id,
             policy=policy_json,
             opts=ResourceOptions(parent=self),
