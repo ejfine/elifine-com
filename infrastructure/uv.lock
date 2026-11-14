@@ -622,7 +622,7 @@ wheels = [
 
 [[package]]
 name = "ephemeral-pulumi-deploy"
-version = "0.0.8"
+version = "0.0.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3" },
@@ -631,9 +631,9 @@ dependencies = [
     { name = "pulumi-aws-native" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/eb/d9/2cbb15a46543666c46f8b123b48227f7dceb0cb9826e21c0a2cb3221be95/ephemeral_pulumi_deploy-0.0.8.tar.gz", hash = "sha256:f3cf3aca7bbef19e4e45521d57fd4389a965d71265313ed8b0d1029fc35e53fc", size = 10315, upload-time = "2026-09-28T20:44:44.628Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3c/5e/e5d499c02ddb2f689cd433006352d40017e8b5c2bbf76f3845e1ef31c689/ephemeral_pulumi_deploy-0.0.9.tar.gz", hash = "sha256:a46adc0d33d0b281d3451b9b66dd3346afa1a5a2194275e5f01d6c0d7a49889e", size = 11493, upload-time = "2026-11-14T16:27:12.062Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/ab/20b72ef4691e9ea534442d959b4f303d89a47e5cc28213f15b5dff69cf3d/ephemeral_pulumi_deploy-0.0.8-py3-none-any.whl", hash = "sha256:37b13f7a19bf564a68ccb04763b244653b797e4609cf4f8abbc712fa86e5c682", size = 9287, upload-time = "2026-09-28T20:44:43.699Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/1e/da02ffa6189a45ed0d81a60365a225015472c4fe80a83cbb38922e0034bf/ephemeral_pulumi_deploy-0.0.9-py3-none-any.whl", hash = "sha256:bb49fd7fff1c88144bc3a6c44d20fc58b829cdc9c16abd522a19223c8ff28ba2", size = 10101, upload-time = "2026-11-14T16:27:10.898Z" },
 ]
 
 [[package]]
@@ -702,7 +702,7 @@ dependencies = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.43.88" },
     { name = "boto3-stubs", extras = ["all"], specifier = ">=1.43.88" },
-    { name = "ephemeral-pulumi-deploy", specifier = ">=0.0.8" },
+    { name = "ephemeral-pulumi-deploy", specifier = ">=0.0.9" },
     { name = "lab-auto-pulumi", specifier = ">=0.7.0" },
     { name = "pulumi", specifier = ">=3.265.0" },
     { name = "pulumi-aws", specifier = ">=7.48.0" },

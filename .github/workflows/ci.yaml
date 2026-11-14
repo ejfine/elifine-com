@@ -229,6 +229,27 @@ jobs:
       SHOW_PREVIEW_COMMENT_ON_PR: ${{ github.event_name == 'pull_request' }}
       DOWNLOAD_ARTIFACT_NAME: app-frontend-static-assets
       DOWNLOAD_ARTIFACT_PATH: elifine_app/.output/public/
+      EXPORT_STACK_OUTPUTS: true
+
+  e2e-test-prod:
+    name: End-to-end Testing (production)
+    needs:
+      - pulumi-prod
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    steps:
+      - name: AWS OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::161272226449:role/InfraPreview--elifine-com # TODO: create a dedicated E2E testing role
+          aws-region: us-east-1
+
+      - name: Wait for the deploy's CloudFront invalidation to complete
+        env:
+          DISTRIBUTION_ID: ${{ fromJSON(needs.pulumi-prod.outputs.stack-outputs)['app-cloudfront-distribution-id'] }}
+          INVALIDATION_ID: ${{ fromJSON(needs.pulumi-prod.outputs.stack-outputs)['-app-cloudfront-invalidation-id'] }}
+        run: aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
 
   confirm-on-tagged-copier-template:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
@@ -243,6 +264,7 @@ jobs:
       - build-app-frontend
       - e2e-test-build
       - pulumi-prod
+      - e2e-test-prod
       - check-skip-duplicate
       - changes
       - confirm-on-tagged-copier-template
