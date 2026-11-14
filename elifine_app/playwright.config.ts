@@ -4,10 +4,9 @@ import { deployedBaseUrl, ensureLocalServerPort } from "./tests/e2e/target";
 
 const e2eDir = fileURLToPath(new URL("./tests/e2e", import.meta.url));
 
-// A static site has no backend to boot, so instead of globalSetup/globalTeardown the suite either targets an
-// already-deployed site (VRT_BASE_URL) or lets Playwright's webServer serve the generated .output/public on a
-// randomly-chosen port. The port is resolved here, in the main process — worker processes inherit the env and
-// re-read the same value.
+// A static site has no backend to boot, so the suite either targets an already-deployed site (see target.ts) or lets
+// Playwright's webServer serve the generated .output/public on a randomly-chosen port. The port is resolved here, in
+// the main process — worker processes inherit the env and re-read the same value.
 async function resolveTarget(): Promise<{ baseURL: string; webServer?: { command: string; url: string } }> {
   if (deployedBaseUrl !== undefined) {
     return { baseURL: deployedBaseUrl };
@@ -30,6 +29,7 @@ export default defineConfig({
   retries: process.env.CI === "true" ? 1 : 0,
   reporter: process.env.CI === "true" ? [["html", { open: "never" }], ["list"]] : [["list"]],
   webServer,
+  globalSetup: "./tests/e2e/global-setup.ts",
   use: {
     baseURL,
     // View a failure's trace.zip (which will be generated in the `test-results` folder) with:
