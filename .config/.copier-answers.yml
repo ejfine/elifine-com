@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.20-5-g637245f
+_commit: v0.0.21
 _src_path: gh:LabAutomationAndScreening/copier-nuxt-static-aws.git
 app_domain_name: www.elifine.com
 app_name: elifine
