@@ -259,15 +259,20 @@ def pulumi_program() -> None:
         )
 
         export("app-cloudfront-domain-name", app_cloudfront.domain_name)
-        _ = Command(
+        export("app-cloudfront-distribution-id", app_cloudfront.id)
+        # stdout is exactly the invalidation ID, so downstream jobs can wait for it to complete. When the static files
+        # are unchanged the command doesn't rerun, and the exported ID is the previous (already completed) invalidation.
+        invalidation = Command(
             append_resource_suffix("app-cloudfront-invalidation"),
             create=app_cloudfront.id.apply(
                 lambda distribution_id: (
-                    f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" && echo {_compute_directory_hash(static_files_dir)}'
+                    f'aws cloudfront create-invalidation --distribution-id {distribution_id} --paths "/*" --query Invalidation.Id --output text'
                 )
             ),
+            triggers=[_compute_directory_hash(static_files_dir)],
             opts=ResourceOptions(depends_on=all_uploads),
         )
+        export("-app-cloudfront-invalidation-id", invalidation.stdout)
 
         def _extract_host(options: Sequence[CertificateDomainValidationOption]) -> str:
             record_name = options[0].resource_record_name
