@@ -1,9 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { expect, test } from "@playwright/test";
+import { StatusCodes } from "http-status-codes";
 import { deployedBaseUrl } from "../target";
 import { BARE_DOMAIN_HOST, PRODUCTION_HOST } from "./routes";
-
-const HTTP_MOVED_PERMANENTLY = 301;
 
 test.describe("Given the suite is running against production", () => {
   test.skip(
@@ -18,14 +17,14 @@ test.describe("Given the suite is running against production", () => {
 
     const response = await request.get(`https://${BARE_DOMAIN_HOST}/about/?${query}`, { maxRedirects: 0 });
 
-    expect(response.status()).toBe(HTTP_MOVED_PERMANENTLY);
+    expect(response.status()).toBe(StatusCodes.MOVED_PERMANENTLY);
     expect(response.headers().location).toBe(`https://${PRODUCTION_HOST}/about/?${query}`);
   });
 
   test("When requesting www over plain HTTP, Then it permanently redirects to HTTPS", async ({ request }) => {
     const response = await request.get(`http://${PRODUCTION_HOST}/about/`, { maxRedirects: 0 });
 
-    expect(response.status()).toBe(HTTP_MOVED_PERMANENTLY);
+    expect(response.status()).toBe(StatusCodes.MOVED_PERMANENTLY);
     expect(response.headers().location).toBe(`https://${PRODUCTION_HOST}/about/`);
   });
 });
