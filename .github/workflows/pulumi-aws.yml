@@ -62,7 +62,7 @@ on:
         default: ''
         type: string
       POST_DEPLOY_E2E_NODE_VERSION:
-        description: 'Node version to install for the POST_DEPLOY_E2E_TEST_DIR run'
+        description: 'Node version to install for the POST_DEPLOY_E2E_TEST_DIR run; required when that is set'
         required: false
         default: ''
         type: string
@@ -141,6 +141,13 @@ jobs:
     env:
       IAC_GITHUB_API_TOKENS: ${{ secrets.iac-github-api-tokens }} # only used in non-enterprise situations when not using full fledged Secrets Manager
     steps:
+      - name: Require a Node version for the post-deploy E2E tests
+        # without one, install_deps skips Node and the E2E step would fail only after the deploy
+        if: ${{ inputs.POST_DEPLOY_E2E_TEST_DIR != '' && inputs.POST_DEPLOY_E2E_NODE_VERSION == '' }}
+        run: |
+          echo "::error::POST_DEPLOY_E2E_TEST_DIR is set, so POST_DEPLOY_E2E_NODE_VERSION must be set too"
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v7.0.1
         with:
