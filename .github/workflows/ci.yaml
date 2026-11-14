@@ -186,6 +186,7 @@ jobs:
       SHOW_PREVIEW_COMMENT_ON_PR: ${{ github.event_name == 'pull_request' }}
       DOWNLOAD_ARTIFACT_NAME: app-frontend-static-assets
       DOWNLOAD_ARTIFACT_PATH: elifine_app/.output/public/
+      EXPORT_STACK_OUTPUTS: true
 
   confirm-on-tagged-copier-template:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}

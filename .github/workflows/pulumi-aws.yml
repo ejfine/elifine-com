@@ -98,6 +98,15 @@ on:
         required: false
         default: false
         type: boolean
+      EXPORT_STACK_OUTPUTS:
+        description: 'After Pulumi Up, expose the stack outputs as the stack-outputs workflow output (a JSON object, secrets masked as "[secret]")'
+        required: false
+        default: false
+        type: boolean
+    outputs:
+      stack-outputs:
+        description: 'The stack outputs as a JSON object, when EXPORT_STACK_OUTPUTS is true and Pulumi Up ran'
+        value: ${{ jobs.pulumi.outputs.stack-outputs }}
     secrets:
       iac-github-api-tokens:
         description: 'API tokens to use for Github IaC deployment when not using AWS Secrets Manager'
@@ -117,6 +126,8 @@ jobs:
   pulumi:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    outputs:
+      stack-outputs: ${{ steps.pulumi-up.outputs.stack-outputs }}
     env:
       IAC_GITHUB_API_TOKENS: ${{ secrets.iac-github-api-tokens }} # only used in non-enterprise situations when not using full fledged Secrets Manager
     steps:
@@ -185,6 +196,7 @@ jobs:
           cli-action: "--refresh"
 
       - name: Pulumi Up
+        id: pulumi-up
         uses: ./.github/actions/pulumi_ephemeral_deploy
         if: ${{ inputs.PULUMI_UP }}
         with:
@@ -196,6 +208,7 @@ jobs:
           aws-region: ${{ inputs.AWS_REGION }}
           aws-account-id: ${{ inputs.AWS_ACCOUNT_ID }}
           cli-action: "--up"
+          export-stack-outputs: ${{ inputs.EXPORT_STACK_OUTPUTS }}
 
       - name: Pulumi Final Destroy
         uses: ./.github/actions/pulumi_ephemeral_deploy

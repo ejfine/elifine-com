@@ -53,9 +53,15 @@ inputs:
     default: false
     required: false
     description: Whether or not to add a comment on to the PR with the pulumi preview details.
-
-
-
+  export-stack-outputs:
+    type: boolean
+    default: false
+    required: false
+    description: Whether to read the stack's outputs after the CLI action and expose them as the stack-outputs output (a JSON object, secrets masked as "[secret]")
+outputs:
+  stack-outputs:
+    description: The stack's outputs as a single-line JSON object, when export-stack-outputs is true
+    value: ${{ steps.export-stack-outputs.outputs.stack-outputs }}
 
 runs:
   using: composite
@@ -118,6 +124,14 @@ runs:
         [View the full output in the Actions run.](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         EOF
         fi
+      shell: bash
+
+    - name: Export stack outputs
+      id: export-stack-outputs
+      if: ${{ inputs.export-stack-outputs == 'true' }}
+      run: |
+        stack_outputs=$(uv --directory ${{ github.workspace }}/${{ inputs.project-dir }} run python -m ${{ inputs.deploy-script-module-name }}.${{ inputs.deploy-script-name }} --stack=${{ inputs.stack-name }} --outputs --json | jq --compact-output .)
+        echo "stack-outputs=$stack_outputs" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Comment the Preview on the Pull Request
