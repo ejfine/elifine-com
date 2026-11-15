@@ -8,3 +8,4 @@ const schedulerUser = "eli-fine";
 
 export const CONTACT_EMAIL = `${emailUser}@${emailDomain}.com`;
 export const SCHEDULER_LINK = `${schedulerHost}.com/${schedulerUser}`;
+export const SCHEDULER_URL = `https://${SCHEDULER_LINK}/30min`;
