@@ -35,6 +35,7 @@ from pulumi_aws_native import cloudfront
 from pulumi_aws_native import s3
 from pulumi_command.local import Command
 
+from .e2e_testing import E2eTesting
 from .jinja_constants import APP_DIRECTORY_NAME
 from .jinja_constants import APP_DOMAIN_NAME
 from .jinja_constants import ATTACH_ACM_CERT_TO_CLOUDFRONT
@@ -128,6 +129,7 @@ def pulumi_program() -> None:
     """Execute creating the stack."""
     aws_account_id = get_aws_account_id()
     export("aws-account-id", aws_account_id)
+    e2e_testing = E2eTesting(aws_account_id=aws_account_id, deploy_role_name="InfraDeploy--elifine-com")
     env = get_config_str("proj:env")
 
     export("env", env)
@@ -260,6 +262,27 @@ def pulumi_program() -> None:
 
         export("app-cloudfront-domain-name", app_cloudfront.domain_name)
         export("app-cloudfront-distribution-id", app_cloudfront.id)
+        if ATTACH_ACM_CERT_TO_CLOUDFRONT:
+            export("app-url", f"https://{APP_DOMAIN_NAME}")
+        else:
+            export("app-url", app_cloudfront.domain_name.apply(lambda domain_name: f"https://{domain_name}"))
+        # the E2E suite waits for the deploy's invalidation to complete before testing the site
+        e2e_testing.grant(
+            policy_name="app-cloudfront-invalidation-read",
+            policy_json=app_cloudfront.id.apply(
+                lambda distribution_id: (
+                    get_policy_document(
+                        statements=[
+                            GetPolicyDocumentStatementArgs(
+                                effect="Allow",
+                                actions=["cloudfront:GetInvalidation"],
+                                resources=[f"arn:aws:cloudfront::{aws_account_id}:distribution/{distribution_id}"],
+                            )
+                        ]
+                    ).json
+                )
+            ),
+        )
         # stdout is exactly the invalidation ID, so downstream jobs can wait for it to complete. When the static files
         # are unchanged the command doesn't rerun, and the exported ID is the previous (already completed) invalidation.
         invalidation = Command(
