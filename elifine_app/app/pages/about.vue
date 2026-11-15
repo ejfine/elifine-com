@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center justify-center">
     <div class="space-y-4">
-      <img :src="headshot" class="w-1/2" />
+      <img src="/images/eli-headshot.png" class="w-1/2" />
 
       <!-- LinkedIn -->
       <a
@@ -52,10 +52,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import headshot from "~/assets/images/eli-headshot.png";
-</script>
 
 <style>
 /* Optional: Add global styles or modify TailwindCSS styles */

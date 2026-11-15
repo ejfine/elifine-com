@@ -1,2 +1,30 @@
 @import "tailwindcss" theme(static);
 @import "@nuxt/ui";
+
+/* Tailwind only generates classes it finds in scanned files; Nuxt Content YAML/Markdown can contain class names too */
+@source "../../../content/**/*";
+
+/* @nuxt/fonts sees these font families declared and downloads/self-hosts them at build time */
+@theme static {
+  --font-sans: "Public Sans", sans-serif;
+  --font-serif: "Instrument Serif", serif;
+}
+
+:root {
+  /* max width of every Nuxt UI UContainer (header, footer, page sections); default 80rem is too wide for a single-column portfolio */
+  --ui-container: var(--container-4xl);
+
+  /* neutral gray text highlight instead of the browser's default blue, which clashes with the cyan primary */
+  ::selection {
+    color: #282a30;
+    background-color: #c8c8c8;
+  }
+}
+
+.dark {
+  /* the light-mode highlight is too bright against the dark background, so use a darker gray with white text */
+  ::selection {
+    color: #ffffff;
+    background-color: #474747;
+  }
+}
