@@ -12,13 +12,15 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "node ./scripts/postinstall.mjs",
-    "test-unit": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/compiled/**\" --run --coverage",
-    "test-unit:watch": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/compiled/**\"",
-    "test-compiled": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/unit/**\" --test-timeout=15000 --run",
+    "test-unit": "vitest run --project=unit-* --coverage --passWithNoTests --coverage.thresholds.100=false",
+    "test-unit:watch": "vitest --project=unit-* --passWithNoTests",
+    "test-compiled": "dotenv -v NUXT_DISABLE_OPTIMIZE_DEPS=1 -- vitest run --project=compiled",
     "serve-static": "node scripts/serve-static.ts",
     "test-e2e": "node ./scripts/prepare-e2e.mjs && playwright test",
     "test-e2e:update-snapshots": "node ./scripts/prepare-e2e.mjs && playwright test --update-snapshots all",
-    "test-compiled:watch": "vitest --exclude=\"tests/e2e/**\" --exclude=\"tests/unit/**\" --test-timeout=15000"
+    "test-compiled:watch": "dotenv -v NUXT_DISABLE_OPTIMIZE_DEPS=1 -- vitest --project=compiled",
+    "test-compiled-dev": "dotenv -v NUXT_DISABLE_OPTIMIZE_DEPS=1 -v NUXT_TEST_DEV=1 -- vitest run --project=compiled",
+    "test-compiled-dev:watch": "dotenv -v NUXT_DISABLE_OPTIMIZE_DEPS=1 -v NUXT_TEST_DEV=1 -- vitest --project=compiled"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.71",

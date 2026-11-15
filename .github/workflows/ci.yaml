@@ -132,11 +132,74 @@ jobs:
       setup-node: true
       node-version: 24.22.1
 
+  unit-test-frontend:
+    name: Unit Test Frontend
+    needs:
+      - check-skip-duplicate
+      - changes
+      - lint
+    if: needs.check-skip-duplicate.outputs.should-run == 'true' && fromJSON(needs.changes.outputs.classes).code
+    timeout-minutes: 8
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install latest versions of node packages
+        uses: ./.github/actions/install_deps
+        with:
+          node-version: 24.22.1
+          skip-installing-ssm-plugin-manager: true
+          skip-installing-pulumi-cli: true
+
+      - name: Unit test
+        run: pnpm --dir=elifine_app test-unit
+
+      - name: Upload test coverage on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: frontend-test-coverage
+          path: elifine_app/.coverage
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 5
+
+      - uses: ./.github/actions/confirm-git-tree-clean
+
+  test-compiled-frontend-dev:
+    name: Test the compiled Frontend for pnpm dev mode
+    needs:
+      - check-skip-duplicate
+      - changes
+      - unit-test-frontend
+    if: needs.check-skip-duplicate.outputs.should-run == 'true' && fromJSON(needs.changes.outputs.classes).code
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    env:
+      INSTALL_PLAYWRIGHT_BROWSERS: "1" # createPage() drives a real browser
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install latest versions of node packages
+        uses: ./.github/actions/install_deps
+        with:
+          node-version: 24.22.1
+          skip-installing-ssm-plugin-manager: true
+          skip-installing-pulumi-cli: true
+
+      - name: Test
+        run: pnpm --dir=elifine_app test-compiled-dev
+
+      - uses: ./.github/actions/confirm-git-tree-clean
+
   build-app-frontend:
     needs:
       - check-skip-duplicate
       - changes
       - lint
+      - unit-test-frontend
     if: needs.check-skip-duplicate.outputs.should-run == 'true' && fromJSON(needs.changes.outputs.classes).code # the pulumi jobs need this one, so they are skipped along with it
     timeout-minutes: 8
     runs-on: ubuntu-24.04
@@ -209,6 +272,8 @@ jobs:
     needs:
       - build-app-frontend
       - e2e-test-build
+      - unit-test-frontend
+      - test-compiled-frontend-dev
       - check-skip-duplicate
     if: needs.check-skip-duplicate.outputs.should-run == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.ref == 'refs/heads/main')
     permissions:
@@ -244,6 +309,8 @@ jobs:
       - lint
       - build-app-frontend
       - e2e-test-build
+      - unit-test-frontend
+      - test-compiled-frontend-dev
       - pulumi-prod
       - check-skip-duplicate
       - changes
