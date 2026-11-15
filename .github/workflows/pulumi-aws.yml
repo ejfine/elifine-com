@@ -148,6 +148,13 @@ jobs:
           echo "::error::POST_DEPLOY_E2E_TEST_DIR is set, so POST_DEPLOY_E2E_NODE_VERSION must be set too"
           exit 1
 
+      - name: Require the artifact name and path together
+        # with only a path, nothing is downloaded but the E2E suite compares against that path; with only a name, the artifact lands in the workspace root and nothing is compared
+        if: ${{ (inputs.DOWNLOAD_ARTIFACT_NAME == '') != (inputs.DOWNLOAD_ARTIFACT_PATH == '') }}
+        run: |
+          echo "::error::DOWNLOAD_ARTIFACT_NAME and DOWNLOAD_ARTIFACT_PATH must be set together or both left empty"
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v7.0.1
         with:
